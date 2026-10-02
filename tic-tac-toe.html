@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XO Game - Tic Tac Toe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            perspective: 1200px;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 22px 0 #4b3b79, 0 30px 45px rgba(0, 0, 0, 0.35);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            transform: rotateX(2deg) translateZ(20px);
+            transform-style: preserve-3d;
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .container:hover {
+            transform: rotateX(0) translateY(-6px) translateZ(20px);
+            box-shadow: 0 28px 0 #4b3b79, 0 38px 55px rgba(0, 0, 0, 0.35);
+        }
+
+        .login-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+            pointer-events: auto;
+        }
+
+        .login-section h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .player-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .player-input-group label {
+            font-weight: bold;
+            color: #555;
+            text-align: left;
+        }
+
+        .profile-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .profile-emoji {
+            font-size: 24px;
+        }
+
+        .player-input-group input {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.12s ease, box-shadow 0.12s ease;
+            box-shadow: 0 4px 0 #c8c8c8, 0 8px 12px rgba(0, 0, 0, 0.12);
+            transform: translateZ(8px);
+            position: relative;
+            z-index: 3;
+        }
+
+        .player-input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 4px 0 #5368c5, 0 8px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            transform: translateZ(12px);
+            box-shadow: 0 5px 0 rgba(0, 0, 0, 0.22), 0 10px 16px rgba(0, 0, 0, 0.16);
+            position: relative;
+            z-index: 3;
+            pointer-events: auto;
+        }
+
+        .btn:active {
+            transform: translateY(4px) translateZ(4px);
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.22), 0 4px 8px rgba(0, 0, 0, 0.16);
+        }
+
+        .btn-start {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-reset {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .game-section {
+            display: none;
+        }
+
+        .game-section.active {
+            display: block;
+        }
+
+        .game-info {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            transform: translateZ(10px);
+            box-shadow: 0 6px 0 #d8dadd, 0 12px 18px rgba(0, 0, 0, 0.12);
+        }
+
+        .game-info h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .player-info {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+
+        .player-status {
+            flex: 1;
+            padding: 10px;
+            border-radius: 5px;
+            background: white;
+            font-weight: bold;
+            transition: background-color 0.1s ease, transform 0.1s ease;
+            box-shadow: 0 4px 0 #d9d9d9, 0 7px 10px rgba(0, 0, 0, 0.12);
+            transform: translateZ(8px);
+        }
+
+        .player-status.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .player-x {
+            color: #3498db;
+        }
+
+        .player-o {
+            color: #e74c3c;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            transform: rotateX(4deg) translateZ(14px);
+            transform-style: preserve-3d;
+            box-shadow: 0 8px 0 #d8dadd, 0 16px 22px rgba(0, 0, 0, 0.16);
+        }
+
+        .cell {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border: 2px solid #ddd;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: transform 0.1s ease, background-color 0.1s ease, box-shadow 0.1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: translateZ(10px);
+            box-shadow: 0 5px 0 #cfcfcf, 0 9px 12px rgba(0, 0, 0, 0.14);
+        }
+
+        .cell:hover {
+            background: #f0f0f0;
+            transform: translateY(-5px) translateZ(18px) rotateX(5deg);
+            box-shadow: 0 9px 0 #c4c4c4, 0 14px 18px rgba(0, 0, 0, 0.2);
+        }
+
+        .cell.x {
+            color: #3498db;
+        }
+
+        .cell.o {
+            color: #e74c3c;
+        }
+
+        .game-status {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #fff3cd;
+            border-radius: 5px;
+            color: #856404;
+            display: none;
+            transform: translateZ(16px);
+            box-shadow: 0 5px 0 #d5be74, 0 10px 16px rgba(0, 0, 0, 0.14);
+        }
+
+        .game-status.show {
+            display: block;
+        }
+
+        .game-status.winner {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .game-status.draw {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        @media (max-width: 400px) {
+            .cell {
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Section -->
+        <form class="login-section" id="loginSection">
+            <h2>🎮 XO Game</h2>
+            <div class="player-input-group">
+                <label class="profile-label" for="player1Name">
+                    <span class="profile-emoji" aria-hidden="true">😀</span>
+                    Player 1 Name (X):
+                </label>
+                <input type="text" id="player1Name" placeholder="Enter Player 1 name" maxlength="20">
+                <span class="error-message" id="error1"></span>
+            </div>
+            <div class="player-input-group">
+                <label class="profile-label" for="player2Name">
+                    <span class="profile-emoji" aria-hidden="true">😎</span>
+                    Player 2 Name (O):
+                </label>
+                <input type="text" id="player2Name" placeholder="Enter Player 2 name" maxlength="20">
+                <span class="error-message" id="error2"></span>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-start" type="submit">Start Game</button>
+            </div>
+        </form>
+
+        <!-- Game Section -->
+        <div class="game-section" id="gameSection">
+            <div class="game-info">
+                <h3>Game Status</h3>
+                <div class="player-info">
+                    <div class="player-status" id="player1Status">
+                        <span class="player-x">X - <span id="player1DisplayName"></span></span>
+                    </div>
+                    <div class="player-status" id="player2Status">
+                        <span class="player-o">O - <span id="player2DisplayName"></span></span>
+                    </div>
+                </div>
+                <div class="game-status" id="gameStatus"></div>
+            </div>
+
+            <div class="board" id="board"></div>
+
+            <div class="button-group">
+                <button class="btn btn-reset" onclick="resetGame()">Reset Game</button>
+                <button class="btn btn-start" onclick="backToLogin()">New Game</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let player1Name = '';
+        let player2Name = '';
+        let currentPlayer = 'X';
+        let gameBoard = ['', '', '', '', '', '', '', '', ''];
+        let gameActive = false;
+        let gameResult = null;
+
+        const winningConditions = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8],
+            [2, 4, 6]
+        ];
+
+        document.getElementById('loginSection').addEventListener('submit', function(event) {
+            event.preventDefault();
+            startGame();
+        });
+
+        function startGame() {
+            const p1 = document.getElementById('player1Name').value.trim();
+            const p2 = document.getElementById('player2Name').value.trim();
+            const error1 = document.getElementById('error1');
+            const error2 = document.getElementById('error2');
+
+            // Clear previous errors
+            error1.classList.remove('show');
+            error2.classList.remove('show');
+
+            // Validation
+            if (!p1) {
+                error1.textContent = 'Please enter Player 1 name';
+                error1.classList.add('show');
+                return;
+            }
+
+            if (!p2) {
+                error2.textContent = 'Please enter Player 2 name';
+                error2.classList.add('show');
+                return;
+            }
+
+            if (p1.length < 2) {
+                error1.textContent = 'Name must be at least 2 characters';
+                error1.classList.add('show');
+                return;
+            }
+
+            if (p2.length < 2) {
+                error2.textContent = 'Name must be at least 2 characters';
+                error2.classList.add('show');
+                return;
+            }
+
+            player1Name = p1;
+            player2Name = p2;
+            gameActive = true;
+            currentPlayer = 'X';
+            gameBoard = ['', '', '', '', '', '', '', '', ''];
+            gameResult = null;
+
+            // Update UI
+            document.getElementById('player1DisplayName').textContent = player1Name;
+            document.getElementById('player2DisplayName').textContent = player2Name;
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('gameSection').classList.add('active');
+            document.getElementById('gameStatus').classList.remove('show', 'winner', 'draw');
+
+            renderBoard();
+            updatePlayerStatus();
+        }
+
+        function renderBoard() {
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+
+            gameBoard.forEach((value, index) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                if (value) {
+                    cell.classList.add(value.toLowerCase());
+                    cell.textContent = value;
+                }
+                cell.onclick = () => makeMove(index);
+                board.appendChild(cell);
+            });
+        }
+
+        function makeMove(index) {
+            if (!gameActive || gameBoard[index] !== '') return;
+
+            gameBoard[index] = currentPlayer;
+            checkGameResult();
+
+            if (gameActive) {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                updatePlayerStatus();
+            }
+
+            renderBoard();
+        }
+
+        function checkGameResult() {
+            for (let condition of winningConditions) {
+                const [a, b, c] = condition;
+                if (gameBoard[a] && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c]) {
+                    gameActive = false;
+                    gameResult = currentPlayer;
+                    const winnerName = currentPlayer === 'X' ? player1Name : player2Name;
+                    const loserName = currentPlayer === 'X' ? player2Name : player1Name;
+                    displayResult(`🏆 ${winnerName}, you're the GOAT! 🐐 ${loserName}, loser! 😭`);
+                    return;
+                }
+            }
+
+            if (!gameBoard.includes('')) {
+                gameActive = false;
+                gameResult = 'draw';
+                displayResult("🤝 It's a Draw!");
+                return;
+            }
+        }
+
+        function displayResult(message) {
+            const statusElement = document.getElementById('gameStatus');
+            statusElement.textContent = message;
+            statusElement.classList.add('show');
+            if (gameResult === 'draw') {
+                statusElement.classList.add('draw');
+            } else {
+                statusElement.classList.add('winner');
+            }
+        }
+
+        function updatePlayerStatus() {
+            const p1Status = document.getElementById('player1Status');
+            const p2Status = document.getElementById('player2Status');
+
+            p1Status.classList.toggle('active', currentPlayer === 'X' && gameActive);
+            p2Status.classList.toggle('active', currentPlayer === 'O' && gameActive);
+        }
+
+        function resetGame() {
+            currentPlayer = 'X';
+            gameBoard = ['', '', '', '', '', '', '', '', ''];
+            gameActive = true;
+            gameResult = null;
+            document.getElementById('gameStatus').classList.remove('show', 'winner', 'draw');
+            renderBoard();
+            updatePlayerStatus();
+        }
+
+        function backToLogin() {
+            document.getElementById('loginSection').style.display = 'flex';
+            document.getElementById('gameSection').classList.remove('active');
+            document.getElementById('player1Name').value = '';
+            document.getElementById('player2Name').value = '';
+            gameActive = false;
+        }
+
+        // Initialize board on page load
+        renderBoard();
+    </script>
+</body>
+</html>
